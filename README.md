@@ -20,10 +20,11 @@ Mark a retired exam with `retired` and `successor` in `assets/certs.js`. It gets
 ## Structure
 ```
 index.html        landing page + exam catalogue
-exam.html         exam engine (exam.html?cert=<id>)
+(single page: exams open at index.html#exam-<id>)
 assets/certs.js   exam catalogue: real exam length, time, pass mark, domains
 assets/exam.js    lobby / exam / results logic
-assets/home.js    catalogue page
+assets/home.js    catalogue page + hash router
+tools/build_single.py  bundles everything into one HTML file
 data/<id>.js      question banks
 ```
 

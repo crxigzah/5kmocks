@@ -15,7 +15,7 @@
 <body>
 <nav>
   <div class="wrap">
-    <a class="logo" href="./"><img src="assets/logo.svg" alt=""><span><b class="grad-text">5k</b>mocks</span></a>
+    <a class="logo" href="#home"><img src="assets/logo.svg" alt=""><span><b class="grad-text">5k</b>mocks</span></a>
     <div class="nav-links">
       <a href="#exams">Exams</a>
       <a href="#how" class="hide-sm">How it works</a>
@@ -24,6 +24,7 @@
   </div>
 </nav>
 
+<div id="home">
 <header class="hero">
   <div class="wrap">
     <span class="pill">Free mock exams</span>
@@ -31,7 +32,7 @@
     <p>Timed mock exams and practice questions for the big IT certifications, with an explanation for every answer and a breakdown of where you're losing marks.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="#exams">Pick an exam</a>
-      <a class="btn btn-outline" href="exam.html?cert=itil">Try ITIL Foundation</a>
+      <a class="btn btn-outline" href="#exam-itil">Try ITIL Foundation</a>
     </div>
     <div class="stats">
       <div class="stat"><b id="statCerts">-</b><span>certifications</span></div>
@@ -67,6 +68,9 @@
     </div>
   </div>
 </section>
+</div>
+
+<main class="wrap" id="app" hidden></main>
 
 <footer>
   <div class="wrap">
@@ -95,6 +99,7 @@
 <script src="data/awssaa.js"></script>
 <script src="data/awsclf.js"></script>
 <script src="data/gcdl.js"></script>
+<script src="assets/exam.js"></script>
 <script src="assets/home.js"></script>
 </body>
 </html>

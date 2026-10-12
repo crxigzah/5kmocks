@@ -2,8 +2,7 @@
 // Question shape in /data/<id>.js: { d: domain, q: text, o: [options], a: index | [indices], e: explanation }
 (function () {
   const app = document.getElementById('app');
-  const params = new URLSearchParams(location.search);
-  const cert = CERTS.find(c => c.id === params.get('cert'));
+  let cert = null;
   const HISTORY_KEY = '5kmocks.history';
   const LETTERS = 'ABCDEFGH';
 
@@ -43,21 +42,54 @@
     return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
   }
 
-  // ---------- Boot ----------
-  if (!cert) {
-    app.innerHTML = `<div class="lobby panel"><h1>Exam not found</h1><p class="lead">That exam doesn't exist (yet).</p><a class="btn btn-primary" href="./#exams">Back to all exams</a></div>`;
-    return;
+  // In-page replacement for confirm(): resolves true if the user picks the
+  // primary action. Native dialogs are blocked in some embedded viewers.
+  function ask(message, okLabel) {
+    return new Promise(resolve => {
+      const back = document.createElement('div');
+      back.className = 'modal-back';
+      back.innerHTML = `<div class="modal panel" role="dialog" aria-modal="true" aria-labelledby="askMsg">
+        <p id="askMsg">${esc(message)}</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost btn-sm" data-r="0">Cancel</button>
+          <button class="btn btn-primary btn-sm" data-r="1">${esc(okLabel)}</button>
+        </div></div>`;
+      const done = r => { back.remove(); document.removeEventListener('keydown', onKey, true); resolve(r); };
+      const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } };
+      back.addEventListener('click', e => {
+        const b = e.target.closest('[data-r]');
+        if (b) done(b.dataset.r === '1');
+        else if (e.target === back) done(false);
+      });
+      document.addEventListener('keydown', onKey, true);
+      document.body.appendChild(back);
+      back.querySelector('[data-r="1"]').focus();
+    });
   }
-  document.title = `${cert.code} ${cert.name} Mock Exam | 5kmocks`;
-  const s = document.createElement('script');
-  s.src = `data/${cert.id}.js`;
-  s.onload = () => { bank = MOCKS.banks[cert.id] || []; lobby(); };
-  s.onerror = () => { app.innerHTML = `<div class="lobby panel"><h1>Couldn't load questions</h1><p class="lead">Try refreshing the page.</p></div>`; };
-  document.body.appendChild(s);
+
+  // ---------- Entry points (called by the router in home.js) ----------
+  window.MockExam = {
+    open(id) {
+      cert = CERTS.find(c => c.id === id);
+      S = null;
+      if (!cert) {
+        app.innerHTML = `<div class="lobby panel"><h1>Exam not found</h1><p class="lead">That exam doesn't exist (yet).</p><a class="btn btn-primary" href="#exams">Back to all exams</a></div>`;
+        return;
+      }
+      document.title = `${cert.code} ${cert.name} Mock | 5kmocks`;
+      bank = MOCKS.banks[cert.id] || [];
+      lobby();
+    },
+    // True while a timed or practice run is underway and unsubmitted.
+    inProgress() { return !!(S && !S.done); },
+    confirmLeave() { return ask('Leave this attempt? Your progress will be lost.', 'Leave'); },
+    close() { clearInterval(tick); S = null; window.onbeforeunload = null; }
+  };
 
   // ---------- Lobby ----------
   function lobby() {
     clearInterval(tick);
+    S = null;
     window.onbeforeunload = null;
     const full = Math.min(bank.length, cert.real.questions);
     const sizes = [...new Set([10, 20, 40, full].filter(n => n <= bank.length))].sort((a, b) => a - b);
@@ -73,7 +105,7 @@
           <p class="lead">${esc(cert.blurb)}</p>
           ${cert.retired ? (() => {
             const next = CERTS.find(c => c.id === cert.successor);
-            return `<div class="retired-banner">${esc(cert.code)} is retired (${esc(cert.retired.replace(/^Retired /, ''))}).${next ? ` If you're booking an exam, practise <a href="exam.html?cert=${next.id}">${esc(next.code)} ${esc(next.name)}</a> instead.` : ''}</div>`;
+            return `<div class="retired-banner">${esc(cert.code)} is retired (${esc(cert.retired.replace(/^Retired /, ''))}).${next ? ` If you're booking an exam, practise <a href="#exam-${next.id}">${esc(next.code)} ${esc(next.name)}</a> instead.` : ''}</div>`;
           })() : ''}
           <div class="facts">
             <div class="fact"><span>Question bank</span><b>${bank.length} questions</b></div>
@@ -235,7 +267,7 @@
     bind('check', () => { S.checked[i] = true; renderQ(); });
     bind('submit', confirmSubmit);
     bind('submit2', confirmSubmit);
-    bind('quit', () => { if (confirm('Quit this attempt? Your progress will be lost.')) lobby(); });
+    bind('quit', () => ask('Quit this attempt? Your progress will be lost.', 'Quit').then(yes => { if (yes) lobby(); }));
     document.querySelector('.dots').onclick = e => {
       const d = e.target.closest('.dot'); if (d) go(+d.dataset.k);
     };
@@ -285,11 +317,11 @@
     const msg = blank
       ? `You have ${blank} unanswered question${blank > 1 ? 's' : ''}${S.flags.size ? ` and ${S.flags.size} flagged` : ''}. Submit anyway?`
       : (S.flags.size ? `You still have ${S.flags.size} flagged question${S.flags.size > 1 ? 's' : ''}. Submit anyway?` : 'Submit and see your results?');
-    if (confirm(msg)) finish(false);
+    ask(msg, 'Submit').then(yes => { if (yes) finish(false); });
   }
 
   document.addEventListener('keydown', e => {
-    if (!S || S.done || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!S || S.done || app.hidden || document.querySelector('.modal-back') || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key.toUpperCase();
     const pos = LETTERS.indexOf(k);
     const order = S.items[S.i].order;
@@ -352,7 +384,7 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             ${wrong.length ? `<button class="btn btn-primary" id="retryWrong">Practise the ${wrong.length} I got wrong</button>` : ''}
             <button class="btn btn-outline" id="again">New attempt</button>
-            <a class="btn btn-ghost" href="./#exams">All exams</a>
+            <a class="btn btn-ghost" href="#exams">All exams</a>
           </div>
         </div>
         <div class="panel" style="margin-top:20px">

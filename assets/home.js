@@ -6,7 +6,7 @@
   let vendor = 'All';
   let level = 'All levels';
 
-  const history = loadHistory();
+  let history = loadHistory();
 
   function loadHistory() {
     try { return JSON.parse(localStorage.getItem('5kmocks.history') || '[]'); }
@@ -39,7 +39,7 @@
         : best
           ? `<span class="best ${best.passed ? 'pass' : 'fail'}">Best ${best.pct}%</span>`
           : '';
-      return `<a class="card${c.retired ? ' is-retired' : ''}" href="exam.html?cert=${c.id}">
+      return `<a class="card${c.retired ? ' is-retired' : ''}" href="#exam-${c.id}">
         <div class="card-top">
           <span class="vendor"><i style="background:${c.colour}"></i>${esc(c.vendor)}</span>
           ${badge || `<span class="code">${esc(c.code)}</span>`}
@@ -76,7 +76,58 @@
 
   document.getElementById('statCerts').textContent = CERTS.filter(c => !c.retired).length;
   document.getElementById('statQs').textContent = Object.values(MOCKS.banks).reduce((a, b) => a + b.length, 0);
-  document.getElementById('statTaken').textContent = history.length;
   document.getElementById('yr').textContent = new Date().getFullYear();
-  render();
+
+  // ---------- Router ----------
+  // One page, two views: the catalogue, and an exam at #exam-<id>.
+  // Hash routing keeps it working as a plain static site with no server rules.
+  const home = document.getElementById('home');
+  const app = document.getElementById('app');
+  const baseTitle = document.title;
+  let current = location.hash;
+  let skip = false;
+
+  function showHome() {
+    history = loadHistory();
+    document.getElementById('statTaken').textContent = history.length;
+    MockExam.close();
+    app.hidden = true;
+    home.hidden = false;
+    document.title = baseTitle;
+    render();
+    const target = location.hash.length > 1 && document.getElementById(location.hash.slice(1));
+    if (target) target.scrollIntoView(); else window.scrollTo(0, 0);
+  }
+
+  function route() {
+    const m = location.hash.match(/^#exam-([a-z0-9]+)$/);
+    current = location.hash;
+    if (m) {
+      home.hidden = true;
+      app.hidden = false;
+      MockExam.open(m[1]);
+      window.scrollTo(0, 0);
+    } else {
+      showHome();
+    }
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (skip) { skip = false; return; }
+    if (MockExam.inProgress() && location.hash !== current) {
+      // Put the address back while we ask, so a cancel leaves the exam as it was.
+      const target = location.hash;
+      skip = true;
+      location.hash = current;
+      MockExam.confirmLeave().then(yes => {
+        if (!yes) return;
+        MockExam.close();
+        location.hash = target;
+      });
+      return;
+    }
+    route();
+  });
+
+  route();
 })();

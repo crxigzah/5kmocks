@@ -15,6 +15,7 @@
   --red: #ff4c6a;
   --gold: #f0a500;
   --grad: linear-gradient(135deg, #00c9a7, #7c3aed);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -44,7 +45,7 @@ a { color: var(--teal); }
 
 /* Nav */
 nav {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
   background: rgba(8,8,16,0.9); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
 }
@@ -236,7 +237,8 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 @media (max-width: 860px) {
   .exam { grid-template-columns: 1fr; }
-  .side { position: static; order: -1; }
+  .side { position: static; }
+  .legend span:last-child { display: none; }
   .dots { grid-template-columns: repeat(10, 1fr); }
   .bar-row { grid-template-columns: 120px 1fr 48px; font-size: 13px; }
 }
@@ -253,3 +255,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 .card.is-retired:hover { opacity: 1; }
 .retired-banner { background: rgba(240,165,0,0.08); border: 1px solid rgba(240,165,0,0.35); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 18px; }
 .retired-banner a { color: var(--gold); font-weight: 600; }
+.modal-back { position: fixed; inset: 0; z-index: 200; background: rgba(4,4,10,0.7); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; }
+.modal { max-width: 420px; width: 100%; }
+.modal p { margin-bottom: 18px; font-size: 15px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn:focus-visible, .chip:focus-visible, .ans:focus-visible, .dot:focus-visible, .mode:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
