@@ -3,7 +3,12 @@
 Free mock exams for the big IT certs, part of the 5kable family. Plain static site: no build step, no backend.
 
 ## Exams
-ITIL Foundation, CCNA 200-301, AZ-104, AZ-900, MS-900, MD-102, SC-900, CompTIA A+ Core 1 & 2, Network+, Security+, AWS SAA-C03.
+- **Fundamentals:** AZ-900, AB-900, AI-901, DP-900, PL-900, SC-900, CompTIA Tech+, AWS Cloud Practitioner (CLF-C02), Google Cloud Digital Leader
+- **Foundation / entry:** ITIL Foundation, CompTIA A+ Core 1 & 2
+- **Intermediate / associate:** CCNA 200-301, AZ-104, MD-102, Network+, Security+, AWS SAA-C03
+- **Retired (kept for reference):** MS-900, replaced by AB-900
+
+Mark a retired exam with `retired` and `successor` in `assets/certs.js`. It gets a badge, sorts last, and its exam page links to the replacement.
 
 ## Features
 - **Exam mode**: timed at the real exam's pace, flag for review, question navigator, auto-submit when time runs out

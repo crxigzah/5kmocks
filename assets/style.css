@@ -248,3 +248,8 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   .dots { grid-template-columns: repeat(8, 1fr); }
   .qtext { font-size: 16px; }
 }
+.best.retired { color: var(--gold); background: rgba(240,165,0,0.1); }
+.card.is-retired { opacity: .6; }
+.card.is-retired:hover { opacity: 1; }
+.retired-banner { background: rgba(240,165,0,0.08); border: 1px solid rgba(240,165,0,0.35); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 18px; }
+.retired-banner a { color: var(--gold); font-weight: 600; }

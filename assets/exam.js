@@ -71,6 +71,10 @@
           <span class="vendor"><i style="background:${cert.colour}"></i>${esc(cert.vendor)} &middot; ${esc(cert.code)}</span>
           <h1>${esc(cert.name)}</h1>
           <p class="lead">${esc(cert.blurb)}</p>
+          ${cert.retired ? (() => {
+            const next = CERTS.find(c => c.id === cert.successor);
+            return `<div class="retired-banner">${esc(cert.code)} is retired (${esc(cert.retired.replace(/^Retired /, ''))}).${next ? ` If you're booking an exam, practise <a href="exam.html?cert=${next.id}">${esc(next.code)} ${esc(next.name)}</a> instead.` : ''}</div>`;
+          })() : ''}
           <div class="facts">
             <div class="fact"><span>Question bank</span><b>${bank.length} questions</b></div>
             <div class="fact"><span>Real exam</span><b>~${cert.real.questions} Qs / ${cert.real.minutes} min</b></div>
